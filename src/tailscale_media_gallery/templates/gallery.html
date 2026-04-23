@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>{{ agent }} Gallery</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: #0a0a0b;
+  color: #e4e4e7;
+  padding: 1rem env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-top: max(1rem, env(safe-area-inset-top));
+  -webkit-font-smoothing: antialiased;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.75rem;
+}
+h1 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.count { color: #a1a1aa; font-size: 0.875rem; }
+
+/* ---- Filter strip ---- */
+
+.filter {
+  display: flex;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #27272a;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.filter::-webkit-scrollbar { display: none; }
+.filter input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.filter label {
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #a1a1aa;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.filter label:hover { border-color: #3f3f46; color: #e4e4e7; }
+.filter input:checked + label {
+  background: #e4e4e7;
+  color: #09090b;
+  border-color: #e4e4e7;
+}
+
+/* Filter behavior via :has() — when a type radio is checked, hide
+   tiles that don't carry that data-type. "All" has no hide rule. */
+body:has(#filter-image:checked) .tile:not([data-type="image"]) { display: none; }
+body:has(#filter-svg:checked)   .tile:not([data-type="svg"])   { display: none; }
+body:has(#filter-pdf:checked)   .tile:not([data-type="pdf"])   { display: none; }
+body:has(#filter-html:checked)  .tile:not([data-type="html"])  { display: none; }
+body:has(#filter-video:checked) .tile:not([data-type="video"]) { display: none; }
+body:has(#filter-md:checked)    .tile:not([data-type="md"])    { display: none; }
+body:has(#filter-other:checked) .tile:not([data-type="other"]) { display: none; }
+
+/* ---- Grid ---- */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+  gap: 0.75rem;
+}
+
+.tile {
+  background: #1a1a1d;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  -webkit-tap-highlight-color: transparent;
+}
+.tile:hover { border-color: #3f3f46; background: #1f1f23; }
+.tile:active { transform: scale(0.98); }
+
+.thumb {
+  aspect-ratio: 1 / 1;
+  background: #1a1a1d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* ---- Fallback (unthumbnailable) ---- */
+
+.fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #3f3f46;
+  padding: 1rem;
+}
+.fallback svg {
+  width: 36px;
+  height: 46px;
+  flex-shrink: 0;
+}
+.fallback-ext {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #71717a;
+}
+
+/* ---- Tile meta ---- */
+
+.meta {
+  padding: 0.65rem 0.85rem 0.75rem;
+  border-top: 1px solid #27272a;
+}
+.slug {
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.25;
+  text-transform: capitalize;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.4rem;
+  font-size: 0.7rem;
+  color: #a1a1aa;
+  font-variant-numeric: tabular-nums;
+  gap: 0.5rem;
+}
+.foot span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.badge {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #27272a;
+  color: #d4d4d8;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  font-size: 0.625rem;
+}
+.badge.image { background: #164e32; color: #86efac; }
+.badge.svg   { background: #3b1e3b; color: #f0abfc; }
+.badge.pdf   { background: #5c1a1a; color: #fca5a5; }
+.badge.html  { background: #1e3a5f; color: #93c5fd; }
+.badge.video { background: #4a2e04; color: #fdba74; }
+.badge.md    { background: #0e3a3a; color: #5eead4; }
+
+.empty {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: #71717a;
+  font-size: 0.95rem;
+}
+.empty code {
+  color: #a1a1aa;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85em;
+  background: #18181b;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>{{ agent }} Gallery</h1>
+  <span class="count">{{ total }} item{% if total != 1 %}s{% endif %}</span>
+</header>
+
+{% if items %}
+<nav class="filter">
+  <input type="radio" id="filter-all" name="filter" checked>
+  <label for="filter-all">All</label>
+  {% if 'image' in types_present %}
+  <input type="radio" id="filter-image" name="filter"><label for="filter-image">Image</label>
+  {% endif %}
+  {% if 'svg' in types_present %}
+  <input type="radio" id="filter-svg" name="filter"><label for="filter-svg">SVG</label>
+  {% endif %}
+  {% if 'pdf' in types_present %}
+  <input type="radio" id="filter-pdf" name="filter"><label for="filter-pdf">PDF</label>
+  {% endif %}
+  {% if 'html' in types_present %}
+  <input type="radio" id="filter-html" name="filter"><label for="filter-html">HTML</label>
+  {% endif %}
+  {% if 'video' in types_present %}
+  <input type="radio" id="filter-video" name="filter"><label for="filter-video">Video</label>
+  {% endif %}
+  {% if 'md' in types_present %}
+  <input type="radio" id="filter-md" name="filter"><label for="filter-md">MD</label>
+  {% endif %}
+  {% if 'other' in types_present %}
+  <input type="radio" id="filter-other" name="filter"><label for="filter-other">Other</label>
+  {% endif %}
+</nav>
+
+<div class="grid">
+  {% for item in items %}
+  <a class="tile" href="/{{ item.raw }}" target="_blank" data-type="{{ item.type }}">
+    <div class="thumb">
+      {% if item.has_thumb %}
+      <img src="/thumb/{{ item.raw }}" alt="{{ item.slug }}" loading="lazy"
+           onerror="const f=document.createElement('div');f.className='fallback';f.innerHTML='<svg viewBox=\'0 0 48 60\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linejoin=\'round\'><path d=\'M4 4h28l12 12v40H4V4z\'/><path d=\'M32 4v12h12\'/></svg><span class=\'fallback-ext\'>{{ item.ext }}</span>';this.replaceWith(f);">
+      {% else %}
+      <div class="fallback">
+        <svg viewBox="0 0 48 60" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+          <path d="M4 4h28l12 12v40H4V4z"/>
+          <path d="M32 4v12h12"/>
+        </svg>
+        <span class="fallback-ext">{{ item.ext }}</span>
+      </div>
+      {% endif %}
+    </div>
+    <div class="meta">
+      <div class="slug">{{ item.slug }}</div>
+      <div class="foot">
+        <span>{% if item.date %}{{ item.date }} · {% endif %}{{ item.size }}</span>
+        <span class="badge {{ item.type }}">{{ item.ext }}</span>
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  No media yet.<br>
+  Drop a file in <code>media/</code> and it'll show up here.
+</div>
+{% endif %}
+
+</body>
+</html>

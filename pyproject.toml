@@ -1,0 +1,22 @@
+[project]
+name = "tailscale-media-gallery"
+version = "0.1.0"
+description = "Flask media gallery with thumbnail caching and dark-mode tile grid — designed for Tailscale Serve."
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{name = "RiskyRon"}]
+dependencies = [
+    "flask>=3.0",
+    "pillow>=10.0",
+    "markdown>=3.5",
+]
+
+[project.scripts]
+media-gallery = "tailscale_media_gallery.app:main"
+
+[project.urls]
+Repository = "https://github.com/RiskyRon/tailscale-media-gallery"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
