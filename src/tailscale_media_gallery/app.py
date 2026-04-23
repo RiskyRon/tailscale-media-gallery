@@ -273,6 +273,8 @@ def route_file(filename):
 
 
 def main():
+    global MEDIA_DIR, CACHE_DIR, TITLE
+
     parser = argparse.ArgumentParser(description="Tailscale Media Gallery")
     parser.add_argument("--media-dir", default=os.environ.get("GALLERY_MEDIA_DIR"),
                         help="Path to the media directory (or set GALLERY_MEDIA_DIR)")
@@ -286,7 +288,6 @@ def main():
                         help=f"Gallery title (default: {TITLE})")
     args = parser.parse_args()
 
-    global MEDIA_DIR, CACHE_DIR, TITLE
     if args.media_dir:
         MEDIA_DIR = Path(args.media_dir).resolve()
     if MEDIA_DIR is None:
